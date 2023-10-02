@@ -5,7 +5,7 @@ Connecting from a local workstation to AWS RDS MySQL via SSH tunneling.
 <img src=".assets/ssh.png" />
 
 
-Create a `.auto.tfvars` a setup you
+Create a `.auto.tfvars` to setup your stack:
 
 ```terraform
 aws_region         = "us-east-2"
@@ -17,7 +17,7 @@ rds_password       = "p4ssw0rd"
 jumpserver_allow_ssh = ["0.0.0.0/0"]
 ```
 
-Create the infrastructure:
+Apply the stack:
 
 ```sh
 terraform init
@@ -31,7 +31,7 @@ mkdir keys
 ssh-keygen -f keys/temp_key
 ```
 
-Add the key public key to the `.ssh/authorized_keys` file using SSM Run Command:
+Add the public key to the `.ssh/authorized_keys` file using SSM Run Command:
 
 ```sh
 # Set "instance-id" and "SSH_PUB_KEY" values accordingly
@@ -52,7 +52,7 @@ aws ssm get-command-invocation \
     --query Status
 ```
 
-Do a simple SSH connection test:
+Check if everything is working by connecting via SSH:
 
 ```sh
 ssh -i keys/temp_key ubuntu@<INSTANCE_DNS>
@@ -66,8 +66,19 @@ jumpserver_allow_ssh = ["YOUR PUBLIC IP/32"]
 
 Apply the configuration.
 
+Now, create the tunnel:
+
 ```
 ssh -i keys/temp_key -f -N -l ubuntu -L 3306:RDS_MYSQL_FQDN:3306  EC2_INSTANCE_FQDN -v
 ```
 
-If the tunnel is created, you should now be able to connect to MySQL from your local machine.
+If the tunnel is created, you should now be able to connect to MySQL from your local machine on port `3306`.
+
+
+---
+
+### Clean-up
+
+```sh
+terraform destroy -auto-approve
+```
